@@ -46,7 +46,7 @@
 
 #include "../../../inc/MarlinConfigPre.h"
 
-#if ALL(DWIN_LCD_PROUI, HAS_LEVELING)
+#if BOTH(DWIN_LCD_PROUI, HAS_LEVELING)
 
 #include "../../marlinui.h"
 #include "../../../core/types.h"
@@ -89,10 +89,9 @@ char cmd[MAX_CMD_SIZE+16], str_1[16], str_2[16], str_3[16];
     struct linear_fit_data lsf_results;
     incremental_LSF_reset(&lsf_results);
     GRID_LOOP(x, y) {
-      const float z = bedlevel.z_values[x][y];
-      if (!isnan(z)) {
+      if (!isnan(bedlevel.z_values[x][y])) {
         xy_pos_t rpos = { bedlevel.get_mesh_x(x), bedlevel.get_mesh_y(y) };
-        incremental_LSF(&lsf_results, rpos, z);
+        incremental_LSF(&lsf_results, rpos, bedlevel.z_values[x][y]);
       }
     }
 

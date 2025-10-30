@@ -31,11 +31,7 @@
 #include "powerloss.h"
 #include "../core/macros.h"
 
-#if ENABLED(EXTENSIBLE_UI)
-  #include "../lcd/extui/ui_api.h"
-#endif
-
-bool PrintJobRecovery::enabled; // Initialized by settings.load
+bool PrintJobRecovery::enabled; // Initialized by settings.load()
 
 MediaFile PrintJobRecovery::file;
 job_recovery_info_t PrintJobRecovery::info;
@@ -71,14 +67,15 @@ uint32_t PrintJobRecovery::cmd_sdpos, // = 0
 
 PrintJobRecovery recovery;
 
+#ifndef POWER_LOSS_PURGE_LEN
+  #define POWER_LOSS_PURGE_LEN 0
+#endif
+
 #if DISABLED(BACKUP_POWER_SUPPLY)
   #undef POWER_LOSS_RETRACT_LEN   // No retract at outage without backup power
 #endif
 #ifndef POWER_LOSS_RETRACT_LEN
   #define POWER_LOSS_RETRACT_LEN 0
-#endif
-#ifndef POWER_LOSS_PURGE_LEN
-  #define POWER_LOSS_PURGE_LEN 0
 #endif
 
 // Allow power-loss recovery to be aborted
@@ -92,7 +89,7 @@ PrintJobRecovery recovery;
 /**
  * Clear the recovery info
  */
-void PrintJobRecovery::init() { info = {}; }
+void PrintJobRecovery::init() { memset(&info, 0, sizeof(info)); }
 
 /**
  * Enable or disable then call changed()
@@ -112,7 +109,6 @@ void PrintJobRecovery::changed() {
     purge();
   else if (IS_SD_PRINTING())
     save(true);
-  TERN_(EXTENSIBLE_UI, ExtUI::onSetPowerLoss(enabled));
 }
 
 /**
@@ -219,13 +215,15 @@ void PrintJobRecovery::save(const bool force/*=false*/, const float zraise/*=POW
       #endif
     #endif
 
-    #if HAS_HOTEND
+    #if HAS_EXTRUDERS
       HOTEND_LOOP() info.target_temperature[e] = thermalManager.degTargetHotend(e);
     #endif
 
     TERN_(HAS_HEATED_BED, info.target_temperature_bed = thermalManager.degTargetBed());
 
-    TERN_(HAS_FAN, COPY(info.fan_speed, thermalManager.fan_speed));
+    #if HAS_FAN
+      COPY(info.fan_speed, thermalManager.fan_speed);
+    #endif
 
     #if HAS_LEVELING
       info.flag.leveling = planner.leveling_active;
@@ -314,9 +312,6 @@ void PrintJobRecovery::save(const bool force/*=false*/, const float zraise/*=POW
     // Save the current position, distance that Z was (or should be) raised,
     // and a flag whether the raise was already done here.
     if (IS_SD_PRINTING()) save(true, zraise, ENABLED(BACKUP_POWER_SUPPLY));
-
-    // Tell the LCD about the outage, even though it is about to die
-    TERN_(EXTENSIBLE_UI, ExtUI::onPowerLoss());
 
     // Disable all heaters to reduce power loss
     thermalManager.disable_all_heaters();
@@ -627,7 +622,7 @@ void PrintJobRecovery::resume() {
 
         #if ENABLED(GCODE_REPEAT_MARKERS)
           DEBUG_ECHOLNPGM("repeat index: ", info.stored_repeat.index);
-          for (uint8_t i = 0; i < info.stored_repeat.index; ++i)
+          LOOP_L_N(i, info.stored_repeat.index)
             DEBUG_ECHOLNPGM("..... sdpos: ", info.stored_repeat.marker.sdpos, " count: ", info.stored_repeat.marker.counter);
         #endif
 
@@ -696,7 +691,7 @@ void PrintJobRecovery::resume() {
         #endif
 
         // Mixing extruder and gradient
-        #if ALL(MIXING_EXTRUDER, GRADIENT_MIX)
+        #if BOTH(MIXING_EXTRUDER, GRADIENT_MIX)
           DEBUG_ECHOLNPGM("gradient: ", info.gradient.enabled ? "ON" : "OFF");
         #endif
 
@@ -715,9 +710,7 @@ void PrintJobRecovery::resume() {
 
         DEBUG_ECHOLNPGM("flag.dryrun: ", AS_DIGIT(info.flag.dryrun));
         DEBUG_ECHOLNPGM("flag.allow_cold_extrusion: ", AS_DIGIT(info.flag.allow_cold_extrusion));
-        #if DISABLED(NO_VOLUMETRICS)
-          DEBUG_ECHOLNPGM("flag.volumetric_enabled: ", AS_DIGIT(info.flag.volumetric_enabled));
-        #endif
+        DEBUG_ECHOLNPGM("flag.volumetric_enabled: ", AS_DIGIT(info.flag.volumetric_enabled));
       }
       else
         DEBUG_ECHOLNPGM("INVALID DATA");

@@ -79,12 +79,11 @@
 //
 // LCD / Controller
 //
-
 #if IS_RRD_FG_SC
   #define BEEPER_PIN                          35
 
   #define LCD_PINS_RS                         27
-  #define LCD_PINS_EN                         23
+  #define LCD_PINS_ENABLE                     23
   #define LCD_PINS_D4                         37
 
   #define LCD_SDSS                            53

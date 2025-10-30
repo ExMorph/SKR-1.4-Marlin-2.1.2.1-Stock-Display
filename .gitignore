@@ -25,9 +25,6 @@ bdf2u8g.exe
 genpages.exe
 marlin_config.json
 mczip.h
-language*.csv
-out-csv/
-out-language/
 *.gen
 *.sublime-workspace
 
@@ -125,7 +122,6 @@ vc-fileutils.settings
 # Visual Studio Code
 .vscode/*
 !.vscode/extensions.json
-*.code-workspace
 
 # Simulation files
 imgui.ini
@@ -134,9 +130,7 @@ spi_flash.bin
 fs.img
 
 # CMake
-buildroot/share/cmake/*
 CMakeLists.txt
-!buildroot/share/cmake/CMakeLists.txt
 src/CMakeLists.txt
 CMakeListsPrivate.txt
 build/
@@ -169,6 +163,3 @@ __pycache__
 tags
 *.logs
 *.bak
-.aider*
-!.aiderignore
-.env

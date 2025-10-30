@@ -21,7 +21,7 @@
  */
 
 /**
- * DWIN G-code thumbnail preview
+ * DWIN g-code thumbnail preview
  * Author: Miguel A. Risco-Castillo
  * version: 3.1.2
  * Date: 2022/09/03
@@ -44,7 +44,7 @@
 
 #include "../../../inc/MarlinConfigPre.h"
 
-#if ALL(DWIN_LCD_PROUI, HAS_GCODE_PREVIEW)
+#if BOTH(DWIN_LCD_PROUI, HAS_GCODE_PREVIEW)
 
 #include "../../../core/types.h"
 #include "../../marlinui.h"

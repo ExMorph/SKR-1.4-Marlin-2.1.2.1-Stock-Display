@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-#pragma once
 
 /**
  * DWIN Single var plot
@@ -42,6 +41,7 @@
  *
  * For commercial applications additional licenses can be requested
  */
+#pragma once
 
 #include "dwinui.h"
 
